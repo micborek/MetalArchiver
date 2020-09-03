@@ -32,7 +32,7 @@ class Scrape:
         # if site returns more than 1 search result
         if 'https://www.metal-archives.com/search?searchString' in current_url:
             html = sel_driver.driver.page_source
-            # add handling if more than one page of results
+            # TODO:add handling if more than one page of results
             results = parse_html.parse_search_results(html)
 
             # run the method again if no results
@@ -60,7 +60,7 @@ class Scrape:
 
             # get the chosen band's page
             for res in results:
-                if res.get('num') == user_choice:
+                if res.get('num') == int(user_choice):
                     sel_driver.driver.get(res['href'])
                     html = sel_driver.driver.page_source
                     return html
