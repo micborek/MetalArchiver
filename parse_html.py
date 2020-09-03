@@ -11,6 +11,8 @@ def parse_search_results(html: str):
     soup = BeautifulSoup(html, 'lxml')
 
     search_results = soup.find('tbody')
+    if 'dataTables_empty' in str(search_results):
+        return
     for table_row in search_results.find_all('tr'):
         table_data = table_row.find_all('td')
         count += 1
@@ -20,6 +22,9 @@ def parse_search_results(html: str):
 
     return results
 
+
+def parse_band_page(html: str):
+    print('Entered band parsing.')
 
 # this part below for testing offline
 # with open('test_data/search_results.html', 'r', encoding='utf8') as f:
