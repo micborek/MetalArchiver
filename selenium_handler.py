@@ -2,10 +2,12 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 # local webdriver directory
-webdriver_path = "C:\chromedriver_win32\chromedriver.exe"
+webdriver_path = "C:/chromedriver_win32/chromedriver.exe"
 
 
 class SeleniumDriver:
+    """This is a class for creating webdriver object"""
+
     main_url = 'https://www.metal-archives.com'
 
     def __init__(self):

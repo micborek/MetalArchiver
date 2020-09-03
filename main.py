@@ -12,10 +12,9 @@ class Scrape:
 
         # choose the band to scrape
         band_site_html = self.get_user_input()
-        if band_site_html:
-            parse_html.parse_band_page(band_site_html)
+        parse_html.parse_band_page(band_site_html)
 
-    def get_user_input(self):
+    def get_user_input(self) -> str:
         """This method is taking user input for searching bands"""
 
         band_to_search = input('Enter the band\'s name or enter Q to quit.')
@@ -29,7 +28,7 @@ class Scrape:
         time.sleep(3)  # change it to wait for an element
         current_url = sel_driver.driver.current_url
 
-        # if site returns more than 1 search result
+        # if site shows search results page - multiple or zero results for query
         if 'https://www.metal-archives.com/search?searchString' in current_url:
             html = sel_driver.driver.page_source
             # TODO:add handling if more than one page of results
@@ -37,7 +36,7 @@ class Scrape:
 
             # run the method again if no results
             if not results:
-                'No results found.'
+                print('No results found.')
                 self.get_user_input()
 
             results_len = len(results)
@@ -58,7 +57,7 @@ class Scrape:
                 except ValueError:
                     print(f'You need to enter a number in range 1 - {results_len} or Q.')
 
-            # get the chosen band's page
+            # get the chosen band's page if more than one result
             for res in results:
                 if res.get('num') == int(user_choice):
                     sel_driver.driver.get(res['href'])
