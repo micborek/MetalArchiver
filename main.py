@@ -12,7 +12,22 @@ class Scrape:
 
         # choose the band to scrape
         band_site_html = self.get_user_input()
-        parse_html.parse_band_page(band_site_html)
+
+        # scrape main band info
+        band_main_info = parse_html.parse_main_info(band_site_html)
+
+        # get releases data
+        releases = parse_html.get_releases_links(band_site_html)
+        for name, link in releases.items():
+            # TODO: parse release, add function for parsing in parse_html
+            print(name, link)
+
+        # click 'read more' comment and scrape
+        # comment_read_more = sel_driver.driver.find_element_by_xpath('// *[ @ id = "band_info"] / div[3] / div / a')
+        # if comment_read_more:
+        #     comment_read_more.click()
+        #     html = sel_driver.driver.page_source
+        #     #TODO: scrape 'read more' info
 
     def get_user_input(self) -> str:
         """This method is taking user input for searching bands"""
@@ -61,6 +76,7 @@ class Scrape:
             for res in results:
                 if res.get('num') == int(user_choice):
                     sel_driver.driver.get(res['href'])
+                    time.sleep(2)  # TODO: apply wait for class
                     html = sel_driver.driver.page_source
                     return html
 
