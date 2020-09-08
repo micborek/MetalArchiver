@@ -10,17 +10,13 @@ class Scrape:
     def main_handler(self):
         """This method is the main point of program's execution"""
 
+        band_data = {}
         # choose the band to scrape
         band_site_html = self.get_user_input()
 
         # scrape main band info
         band_main_info = parse_html.parse_main_info(band_site_html)
-
-        # get releases data
-        releases = parse_html.get_releases_links(band_site_html)
-        for name, link in releases.items():
-            # TODO: parse release, add function for parsing in parse_html
-            print(name, link)
+        band_data['main'] = band_main_info
 
         # click 'read more' comment and scrape
         # comment_read_more = sel_driver.driver.find_element_by_xpath('// *[ @ id = "band_info"] / div[3] / div / a')
@@ -28,6 +24,23 @@ class Scrape:
         #     comment_read_more.click()
         #     html = sel_driver.driver.page_source
         #     #TODO: scrape 'read more' info
+
+        # get releases data
+        releases_data = []
+        releases = parse_html.get_releases_links(band_site_html)
+        rel_count = 0
+        for name, link in releases.items():
+            rel_count += 1
+            print(f"Scraping release '{name}'")
+            sel_driver.driver.get(link)
+            html = sel_driver.driver.page_source
+            rel = parse_html.parse_release_data(html)
+            if rel:
+                releases_data.append(rel)
+        band_data['releases'] = releases_data
+
+        print(band_data)
+        print(f"Scraping data for {band_data.get('main').get('Name')} finished.")
 
     def get_user_input(self) -> str:
         """This method is taking user input for searching bands"""
