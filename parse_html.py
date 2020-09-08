@@ -1,4 +1,4 @@
-# This module parses sites with BeautifulSoup
+"""This module is for parsing different sub-pages with BeautifulSoup"""
 # TODO: create a 'parser' class
 
 from bs4 import BeautifulSoup
@@ -14,7 +14,7 @@ def parse_search_results(html: str) -> list:
 
     search_results = soup.find('tbody')
     if 'dataTables_empty' in str(search_results):
-        return
+        return results
     for table_row in search_results.find_all('tr'):
         table_data = table_row.find_all('td')
         count += 1
@@ -28,17 +28,25 @@ def parse_search_results(html: str) -> list:
 def parse_main_info(html: str) -> dict:
     """This function gets the basic info from the html - header and top columns"""
 
-    basic_info = {}
     print("Getting basic info about the band.")
     soup = BeautifulSoup(html, 'lxml')
+
+    # get basic info from left and right column
+    basic_info = parse_float_left_right(soup)
 
     # get header
     basic_info['Name'] = soup.find('h1', class_='band_name').text
 
-    # get basic info from left and right column
-    left = soup.find('dl', class_='float_left')
+    return basic_info
+
+
+def parse_float_left_right(html: BeautifulSoup) -> dict:
+    """This one is for parsing floating columns which occur for band and release sites"""
+
+    data = {}
+    left = html.find('dl', class_='float_left')
     info = left.find_all(['dd', 'dt'])
-    right = soup.find('dl', class_='float_right')
+    right = html.find('dl', class_='float_right')
     info_right = right.find_all(['dd', 'dt'])
     for element in info_right:
         info.append(element)
@@ -49,10 +57,10 @@ def parse_main_info(html: str) -> dict:
             key = element.text
             count += 1
         else:
-            basic_info[key] = element.text
+            data[key] = element.text.replace('\n', '')
             count = 0
 
-    return basic_info
+    return data
 
 
 def get_releases_links(html: str) -> dict:
@@ -70,6 +78,18 @@ def get_releases_links(html: str) -> dict:
     return links
 
 
+def parse_release_data(html: str) -> dict:
+    """This function gets data from the release page"""
+
+    soup = BeautifulSoup(html, 'lxml')
+    release_data = parse_float_left_right(soup)
+
+    # get header
+    release_data['Name'] = soup.find('h1', class_='album_name').text
+
+    return release_data
+
+
 # this part below for testing offline
 
 # with open('test_data/search_results.html', 'r', encoding='utf8') as f:
@@ -78,8 +98,12 @@ def get_releases_links(html: str) -> dict:
 
 # with open('test_data/band_site.html', 'r', encoding='utf8') as f:
 #     html_string = f.read()
-# parse_band_page(html_string)
+# parse_main_info(html_string)
 
 # with open('test_data/band_site.html', 'r', encoding='utf8') as f:
 #     html_string = f.read()
 # get_releases_links(html_string)
+
+# with open('test_data/release_site.html', 'r', encoding='utf8') as f:
+#     html_string = f.read()
+# parse_release_data(html_string)
