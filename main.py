@@ -1,11 +1,14 @@
 from selenium_handler import SeleniumDriver
 from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import NoSuchElementException
 import parse_html
 import time
 import sys
+import json
 
 
 class Scrape:
+    parser = parse_html.HtmlParser()
 
     def main_handler(self):
         """This method is the main point of program's execution"""
@@ -15,32 +18,44 @@ class Scrape:
         band_site_html = self.get_user_input()
 
         # scrape main band info
-        band_main_info = parse_html.parse_main_info(band_site_html)
+        band_main_info = self.parser.parse_main_info(band_site_html)
         band_data['main'] = band_main_info
 
-        # click 'read more' comment and scrape
-        # comment_read_more = sel_driver.driver.find_element_by_xpath('// *[ @ id = "band_info"] / div[3] / div / a')
-        # if comment_read_more:
-        #     comment_read_more.click()
-        #     html = sel_driver.driver.page_source
-        #     #TODO: scrape 'read more' info
+        # click 'read more' for comment if exists and scrape
+        try:
+            comment_read_more = sel_driver.driver.find_element_by_xpath('// *[ @ id = "band_info"] / div[3] / div / a')
+            comment_read_more.click()
+            time.sleep(2)  # TODO: apply wait for class
+            html = sel_driver.driver.page_source
+            comment = self.parser.parse_general_comment(html)
+            band_data['main']['comment'] = comment
+        except NoSuchElementException:
+            pass
 
         # get releases data
+        releases_data = self.get_releases_data(band_site_html)
+        band_data['releases'] = releases_data
+
+        # final message
+        print(json.dumps(band_data))
+        print(f"Scraping data for {band_data.get('main').get('Name')} finished.")
+
+    def get_releases_data(self, band_site_html: str) -> list:
+        """This is for adding releases data to band data"""
+
         releases_data = []
-        releases = parse_html.get_releases_links(band_site_html)
+        releases = self.parser.get_releases_links(band_site_html)
         rel_count = 0
         for name, link in releases.items():
             rel_count += 1
-            print(f"Scraping release '{name}'")
+            print(f"Scraping release '{name}' ({rel_count} of {len(releases)})")
             sel_driver.driver.get(link)
             html = sel_driver.driver.page_source
-            rel = parse_html.parse_release_data(html)
+            rel = self.parser.parse_release_data(html)
             if rel:
                 releases_data.append(rel)
-        band_data['releases'] = releases_data
 
-        print(band_data)
-        print(f"Scraping data for {band_data.get('main').get('Name')} finished.")
+        return releases_data
 
     def get_user_input(self) -> str:
         """This method is taking user input for searching bands"""
@@ -60,7 +75,7 @@ class Scrape:
         if 'https://www.metal-archives.com/search?searchString' in current_url:
             html = sel_driver.driver.page_source
             # TODO:add handling if more than one page of results
-            results = parse_html.parse_search_results(html)
+            results = self.parser.parse_search_results(html)
 
             # run the method again if no results
             if not results:
