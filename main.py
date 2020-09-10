@@ -1,6 +1,7 @@
 from selenium_handler import SeleniumDriver
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
+import export_file
 import parse_html
 import time
 import sys
@@ -22,6 +23,21 @@ class Scrape:
         band_data['main'] = band_main_info
 
         # click 'read more' for comment if exists and scrape
+        self.get_band_comment(band_data)
+
+        # get releases data
+        releases_data = self.get_releases_data(band_site_html)
+        band_data['releases'] = releases_data
+
+        # export json file with all band data
+        exporter = export_file.ExportFile()
+        exporter.export_all_to_json(band_data)
+
+        print(f"Scraping data for {band_data.get('main').get('Name')} finished.")
+
+    def get_band_comment(self, band_data):
+        """The method for getting comment for a band if exists"""
+
         try:
             comment_read_more = sel_driver.driver.find_element_by_xpath('// *[ @ id = "band_info"] / div[3] / div / a')
             comment_read_more.click()
@@ -31,14 +47,6 @@ class Scrape:
             band_data['main']['comment'] = comment
         except NoSuchElementException:
             pass
-
-        # get releases data
-        releases_data = self.get_releases_data(band_site_html)
-        band_data['releases'] = releases_data
-
-        # final message
-        print(json.dumps(band_data))
-        print(f"Scraping data for {band_data.get('main').get('Name')} finished.")
 
     def get_releases_data(self, band_site_html: str) -> list:
         """This is for adding releases data to band data"""
